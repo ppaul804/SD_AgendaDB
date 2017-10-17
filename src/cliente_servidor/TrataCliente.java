@@ -1,38 +1,29 @@
 package cliente_servidor;
 
-import java.io.InputStream;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
 
 public class TrataCliente implements Runnable{
-    private InputStream cliente;
+    private BufferedReader cliente;
     private Server servidor;
 
-    public TrataCliente(InputStream cliente, Server servidor){
+    public TrataCliente(BufferedReader cliente, Server servidor){
         this.cliente = cliente;
         this.servidor = servidor;
     }
 
     public void run() {
-        
-        Scanner entrada = new Scanner(this.cliente);
-        while(entrada.hasNextLine()) {
-            
-            String opcao = entrada.nextLine();
-            
-            switch (opcao){
-                case "1":
-                    System.out.println("TrataCliente"+cliente);
-                    break;
-                case "2":
-                    System.out.println("TrataCliente"+cliente);
-                    break;
-                case "3":
-                    System.out.println("TrataCliente"+cliente);
-                    break;
+        try {
+            BufferedReader entradaBF = new BufferedReader(cliente);
+            while(entradaBF.ready()) {
+                
+                String opcao = entradaBF.readLine();
+                
+                
+            servidor.distribuiMensagem(entradaBF);
             }
-            
-//            servidor.distribuiMensagem(entrada.nextLine());
+            entradaBF.close();
+        } catch (IOException ex) {
         }
-        entrada.close();
-    }
-}
+    }//fim método run
+}//fim classe TrataCliente

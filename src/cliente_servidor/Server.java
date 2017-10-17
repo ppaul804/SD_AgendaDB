@@ -1,7 +1,9 @@
 package cliente_servidor;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -11,7 +13,7 @@ import java.util.logging.Logger;
 
 public class Server {
 
-    private List<PrintStream> clientes;
+    private List<DataOutputStream> clientes;
 
     private Server() {
         this.clientes = new ArrayList<>();
@@ -20,21 +22,31 @@ public class Server {
     public void exe() {
 
         try {
+            //Crie uma instancia da class SocketServer, especializada para servidores (listen embutido)
             ServerSocket server = new ServerSocket(12345);
             System.out.println("Servidor iniciado na porta 12345");
 
             while (true) {
                 
                 //aceita cliente
-                Socket cliente = server.accept();
-                System.out.println("Cliente conectado do IP " + cliente.getInetAddress().
+                Socket skt = server.accept();
+                System.out.println("Cliente conectado do IP " + skt.getInetAddress().
                         getHostAddress());
+                //Cria uma stream de entrada
+                BufferedReader doClienteBF = new BufferedReader(new InputStreamReader(skt.getInputStream()));
+                // e uma stream de saída
+               	DataOutputStream paraCliente = new DataOutputStream(skt.getOutputStream());
+                //Lê o a entrada do cliente
+                String lidoDoCliente = doClienteBF.readLine();
+                // Mostra no servidor o que o cliente mandou
+                System.out.println("Cliente escreveu: " + lidoDoCliente);
+                
+                paraCliente.writeBytes(lidoDoCliente = "Confirmacao de Recepcao(" + lidoDoCliente + ")\n");
                 //adiciona o que é recebido do cliente a lista
-                PrintStream bytes = new PrintStream(cliente.getOutputStream());
-                this.clientes.add(bytes);
+//                this.clientes.add(paraCliente);
                 //cria uma thread onde será tratado o cliente
-                TrataCliente tc = new TrataCliente(cliente.getInputStream(), this /*<-servidor*/);
-                new Thread(tc).start();
+//                TrataCliente tc = new TrataCliente(doClienteBF, this /*<-servidor*/);
+//                new Thread(tc).start();
 
             }//fim do while
 
@@ -43,10 +55,11 @@ public class Server {
         }
     }//fim do main
 
-    public void distribuiMensagem(String msg) {
-        for (PrintStream cliente : this.clientes) {
+    public void distribuiMensagem(BufferedReader doClienteBF) throws IOException {
+        String lidoDoCliente = doClienteBF.readLine();
+        for (DataOutputStream paraCliente : this.clientes) {
             //Distribui as mensagens entre os clientes
-            cliente.println(msg);
+            paraCliente.writeBytes(lidoDoCliente = "Confirmacao de Recepcao(" + lidoDoCliente + ")\n");
         }
     }
 
