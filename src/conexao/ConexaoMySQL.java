@@ -14,7 +14,7 @@ public class ConexaoMySQL {
     //Dados do Banco
     private static final String USUARIO = "root";
     private static final String SENHA = "uniceub";
-    private static final String URL = "jdbc:mysql://127.0.0.1/agendadb?autoReconnect=true&useSSL=false";//url do banco
+    private static final String URL = "jdbc:mysql://localhost:3306/agendadb?autoReconnect=true&useSSL=false";//url do banco
     private static final String DRIVER = "com.mysql.jdbc.Driver";
    
 
