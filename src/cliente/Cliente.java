@@ -6,44 +6,115 @@ import java.io.PrintStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.Scanner;
 
-public class Cliente {
+public class Cliente implements Runnable {
 
-    public static void main(String[] args) throws Exception {
-        System.out.println("Inciando Cliente.");
-        System.out.println("Inciando Conexão com Servidor.");
-        Socket socket = new Socket("localhost", 12345);
-        System.out.println("Conexão estabelecida.");
-        InputStream input = socket.getInputStream();
-        OutputStream output = socket.getOutputStream();
-        BufferedReader tecladoBR = new BufferedReader(new InputStreamReader(input));
-        PrintStream paraServidor = new PrintStream(output);
-        Scanner scanner = new Scanner(System.in);
-        boolean logout = false;
-        while (!logout) {
-            //Qual vai ser a opção escolhida?
-            mostraMenu();
-            String mensagem = scanner.nextLine();
+    /*  Atributos   */
+    private Socket socket;
 
-            paraServidor.println(mensagem);//envia para o servidor
-            if (mensagem.equals("4")) {
-                logout = true;
-                break;
+    private BufferedReader tecladoBR;
+    private PrintStream paraServidor;
+
+    private boolean inicializado;
+    private boolean executando;
+
+    private Thread thread;
+
+    public Cliente(String endereco, int porta) throws Exception {
+        inicializado = false;
+        executando = false;
+
+        open(endereco, porta);
+    }
+
+    private void open(String endereco, int porta) throws Exception {
+        try {
+            socket = new Socket(endereco, porta);
+
+            tecladoBR = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            paraServidor = new PrintStream(socket.getOutputStream());
+
+            inicializado = true;
+        } catch (Exception e) {
+            System.out.println(e);
+            close();
+            throw e;
+        }
+    }
+
+    private void close() {
+        if (tecladoBR != null) {
+            try {
+                tecladoBR.close();
+            } catch (Exception e) {
+                System.out.println(e);
             }
+        }
+        if (paraServidor != null) {
+            try {
+                paraServidor.close();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
 
-            mensagem = tecladoBR.readLine();//recebe do servidor
-            System.out.println("Servidor diz: " + mensagem);
+        /*  Reinicializando atributos   */
+        tecladoBR = null;
+        paraServidor = null;
 
-        }//fim while
-        System.out.println("Encerrando conexão.");
-        tecladoBR.close();//BufferedReader
-        paraServidor.close();//PrintStream
-        socket.close();
+        socket = null;
+
+        inicializado = false;
+        executando = false;
+
+        thread = null;
+    }
+
+    public void start() {
+        if (!inicializado || executando) {
+            return;
+        }
+        executando = true;
+        thread = new Thread(this);
+        thread.start();
+    }
+
+    public void stop() throws Exception {
+        executando = false;
+
+        if (thread != null) {
+            thread.join();
+        }
 
     }
 
-    private static void mostraMenu() {
+    /**
+     * Verifica se o cliente está executando
+     *
+     * @return Estado do cliente
+     */
+    public boolean isExecutando() {
+        return executando;
+    }
+
+    /**
+     * Envia a mensagem para o servidor
+     * @param mensagem 
+     */
+    public void send(String mensagem) {
+        paraServidor.println(mensagem);//envia para o servidor
+    }
+
+    public static void mostraMenu() {
         System.out.println("\t\tMENU\n"
                 + "1 - Armazena/Atualiza um Registro;\n"
                 + "2 - Remove um Registro;\n"
@@ -52,4 +123,66 @@ public class Cliente {
         System.out.print("> ");
     }
 
+    @Override
+    public void run() {
+        while (executando) {
+            try {
+                socket.setSoTimeout(60000);//Definição de um timeout para a operação de leitura e a leitura da mensagem enviada pelo servidor.
+
+                String mensagem = tecladoBR.readLine();
+
+                //Quando a conexão do lado do servidor cai ou é encerrada, 
+                //recebemos um null. Neste caso, finalizamos o laço e 
+                //caminhamos para a finalização da thread.
+                if (mensagem == null) {
+                    break;
+                }
+
+                //Apresentação da mensagem recebida para o usuário.
+                System.out.println(
+                        "Servidor "
+                        + mensagem);
+
+            } catch (SocketTimeoutException e) {
+                //ignorar
+            } catch (Exception e) {
+                System.out.println(e);
+                break;
+            }
+        }
+        close();
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.out.println("Iniciando Cliente.");
+        System.out.println("Iniciando conexão com servidor.");
+        Cliente cliente = new Cliente("localhost", 12345);
+        System.out.println("Conexão estabelecida.");
+
+        cliente.start();
+
+        Scanner scanner = new Scanner(System.in);
+        boolean logout = false;
+
+        mostraMenu();
+        while (!logout) {
+            String mensagem = scanner.nextLine();
+            
+            if (!cliente.isExecutando()) {
+                break;
+            }
+            
+            cliente.send(mensagem);
+            
+            if (mensagem.equals("4")) {
+                //sai do loop e encerra o cliente
+                logout = true;
+                break;
+            }
+            
+        }//fim while
+        System.out.println("Encerrando conexão.");
+        cliente.stop();
+    }
+    
 }//fim classe client

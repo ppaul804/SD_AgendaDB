@@ -123,6 +123,20 @@ class TrataCliente implements Runnable {
             thread.join();
         }
     }
+    
+    /**
+     * Envia a mensagem para o cliente. Usa o println.
+     * @param mensagem 
+     */
+    public void send(String mensagem){
+        paraCliente.println(mensagem);//envia para o cliente
+    }
+    
+    private void mostraLista(List<Agenda> listaContatos, PrintStream paraCliente) {
+        for (Agenda listaContato : listaContatos) {
+            paraCliente.printf("Nome:%s\tTelefone:%s\n",listaContato.nome, listaContato.telefone);
+        }//fim for
+    }
 
     @Override
     public void run() {
@@ -132,7 +146,8 @@ class TrataCliente implements Runnable {
                 skt.setSoTimeout(600000);//1min
 
                 String lidoDoCliente = doClienteBF.readLine();
-
+                
+                //imprime no console do servidor
                 System.out.println(skt.getInetAddress().getHostAddress()
                         + ":"
                         + skt.getPort()
@@ -141,39 +156,31 @@ class TrataCliente implements Runnable {
                 
                 switch (lidoDoCliente) {
                     case "1"://Armazena/Atualiza um Registro
-                        
-                        paraCliente.println(lidoDoCliente);//envia para o cliente
+                        send("0");//envia para o cliente
                         break;
                     case "2"://Remove um Registro
-                        paraCliente.println(lidoDoCliente);//envia para o cliente
+                        send("00");//envia para o cliente
                         break;
                     case "3"://Recupera um Registro
-                        paraCliente.println(lidoDoCliente);//envia para o cliente
+                        send("000");//envia para o cliente
                         break;
                     case "4"://Finaliza a Aplicação
-                        paraCliente.println(lidoDoCliente);//envia para o cliente
+                        send(lidoDoCliente);//envia para o cliente
                         break;
                     case "5":
+                        send("00000");
                         listaContatos = agendaDAO.recuperaTodos(contato);
                         if (!listaContatos.isEmpty()) {
                             mostraLista(listaContatos, paraCliente);
                         } else {
-                            lidoDoCliente = "Agenda vazia";
-                            paraCliente.println(lidoDoCliente);//envia para o cliente
+                            send("Agenda vazia");
                         }
                         break;
                     default:
-                        paraCliente.println(lidoDoCliente);//envia para o cliente
+                        send(lidoDoCliente + " [Default]");//envia para o cliente
                         break;
-                }
-                if (lidoDoCliente.equals("4")) {
-                    paraCliente.println(lidoDoCliente);
-                    break;
-                }
+                }//fim do switch case
                 
-                
-                //envia a mensagem para o cliente
-                paraCliente.println(lidoDoCliente);
             } catch (Exception e) {
                 System.out.println(e);
                 break;
@@ -181,13 +188,6 @@ class TrataCliente implements Runnable {
         }//fim while
         System.out.println("Encerrando conexão.");
         close();
-    }
-
-    private void mostraLista(List<Agenda> listaContatos, PrintStream paraCliente) {
-        for (Agenda listaContato : listaContatos) {
-            System.out.printf("Nome:%s\tTelefone:%s\n",listaContato.nome, listaContato.telefone);
-            paraCliente.printf("Nome:%s\tTelefone:%s\n",listaContato.nome, listaContato.telefone);
-        }//fim for
     }
 
 }//fim classe TrataCliente
