@@ -1,6 +1,7 @@
 package model.bean;
 
 public class Agenda {
+
     public String nome;
     public String telefone;
 

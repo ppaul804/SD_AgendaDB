@@ -1,10 +1,8 @@
 package cliente;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Scanner;
@@ -108,26 +106,18 @@ public class Cliente implements Runnable {
 
     /**
      * Envia a mensagem para o servidor
-     * @param mensagem 
+     *
+     * @param mensagem
      */
     public void send(String mensagem) {
         paraServidor.println(mensagem);//envia para o servidor
-    }
-
-    public static void mostraMenu() {
-        System.out.println("\t\tMENU\n"
-                + "1 - Armazena/Atualiza um Registro;\n"
-                + "2 - Remove um Registro;\n"
-                + "3 - Recupera um Registro;\n"
-                + "4 - Finaliza a Aplicação;");
-        System.out.print("> ");
     }
 
     @Override
     public void run() {
         while (executando) {
             try {
-                socket.setSoTimeout(60000);//Definição de um timeout para a operação de leitura e a leitura da mensagem enviada pelo servidor.
+                socket.setSoTimeout(600000);//Definição de um timeout para a operação de leitura e a leitura da mensagem enviada pelo servidor.
 
                 String mensagem = tecladoBR.readLine();
 
@@ -138,10 +128,8 @@ public class Cliente implements Runnable {
                     break;
                 }
 
-                //Apresentação da mensagem recebida para o usuário.
-                System.out.println(
-                        "Servidor "
-                        + mensagem);
+                //Apresentação da mensagem recebida do Servidor para o usuário.
+                System.out.println(mensagem);
 
             } catch (SocketTimeoutException e) {
                 //ignorar
@@ -164,25 +152,25 @@ public class Cliente implements Runnable {
         Scanner scanner = new Scanner(System.in);
         boolean logout = false;
 
-        mostraMenu();
         while (!logout) {
+            //O Servidor mostra o menu
             String mensagem = scanner.nextLine();
-            
+
             if (!cliente.isExecutando()) {
                 break;
             }
-            
+
             cliente.send(mensagem);
-            
+
             if (mensagem.equals("4")) {
                 //sai do loop e encerra o cliente
                 logout = true;
                 break;
             }
-            
+
         }//fim while
-        System.out.println("Encerrando conexão.");
+        System.out.println("Cliente encerrando conexão.");
         cliente.stop();
     }
-    
+
 }//fim classe client

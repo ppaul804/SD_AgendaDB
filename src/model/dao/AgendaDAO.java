@@ -89,11 +89,11 @@ public class AgendaDAO {
             stmt = conexao.prepareStatement("SELECT * FROM agenda WHERE nome=?;");
             stmt.setString(1, agenda.getNome());
 
-            rs=stmt.executeQuery();
+            rs = stmt.executeQuery();
             while (rs.next()) {
                 Agenda contato = new Agenda(
-                    rs.getString("nome"),
-                    rs.getString("telefone")
+                        rs.getString("nome"),
+                        rs.getString("telefone")
                 );
                 listaContatos.add(contato);
             }//fim while
@@ -115,11 +115,11 @@ public class AgendaDAO {
         try {
             stmt = conexao.prepareStatement("SELECT * FROM agenda");
 
-            rs=stmt.executeQuery();
+            rs = stmt.executeQuery();
             while (rs.next()) {
                 Agenda contato = new Agenda(
-                    rs.getString("nome"),
-                    rs.getString("telefone")
+                        rs.getString("nome"),
+                        rs.getString("telefone")
                 );
                 listaContatos.add(contato);
             }//fim while

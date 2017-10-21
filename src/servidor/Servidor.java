@@ -7,10 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- *
- * @author Pedro Paul
- */
+
 public class Servidor implements Runnable {
 
     /*  Atributos   */
@@ -67,7 +64,7 @@ public class Servidor implements Runnable {
         } catch (Exception e) {
             System.out.println(e);
         }
-        
+
         /*  Reinicialização dos atrubutos   */
         server = null;
 
@@ -91,7 +88,8 @@ public class Servidor implements Runnable {
 
     /**
      * Altera do estado do servidor e aguarda a thread finalizar.
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     public void stop() throws Exception {
         executando = false;
@@ -105,7 +103,7 @@ public class Servidor implements Runnable {
         System.out.println("Aguardando conexão.");
         while (executando) {
             try {
-                server.setSoTimeout(60000);//limite de 1min de bloqueio da thread para que de tempos e tempos ela possa reavaliar a condição do laço
+                server.setSoTimeout(600000);//limite de 1min de bloqueio da thread para que de tempos e tempos ela possa reavaliar a condição do laço
 
                 Socket skt = server.accept();
 
